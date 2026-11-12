@@ -1,4 +1,3 @@
-import { posix as pathPosix } from 'node:path';
 import { App, Editor, Notice, TFile } from 'obsidian';
 import type ImagePlugin from '../main';
 import type { ImagePluginSettings } from '../types';
@@ -27,11 +26,15 @@ function extractImageFiles(fileList: FileList | null | undefined): File[] {
 	return result;
 }
 
-function splitFileName(name: string, fallbackMime: string): {
+function splitFileName(
+	name: string,
+	fallbackMime: string,
+): {
 	baseName: string;
 	extension: string;
 } {
-	const extRaw = pathPosix.extname(name);
+	const dotIndex = name.lastIndexOf('.');
+	const extRaw = dotIndex > 0 ? name.slice(dotIndex) : '';
 	if (extRaw) {
 		const base = name.slice(0, name.length - extRaw.length);
 		return {
@@ -79,10 +82,11 @@ async function processAndInsertFiles(
 				target.fullPath,
 				processed.buffer,
 			);
-			const link = app.fileManager.generateMarkdownLink(
+			const rawLink = app.fileManager.generateMarkdownLink(
 				created,
 				noteFile?.path ?? '',
 			);
+			const link = rawLink.startsWith('!') ? rawLink : `!${rawLink}`;
 			links.push(link);
 		} catch {
 			new Notice(`Failed to process image: ${file.name}`);
@@ -141,12 +145,13 @@ async function processAndInsertRemoteTarget(
 			settings,
 		);
 		if (settings.remote.replaceLink) {
-			const link = app.fileManager.generateMarkdownLink(
+			const rawLink = app.fileManager.generateMarkdownLink(
 				saved,
 				noteFile?.path ?? '',
 				'',
 				target.altText,
 			);
+			const link = rawLink.startsWith('!') ? rawLink : `!${rawLink}`;
 			editor.replaceSelection(link);
 		} else {
 			editor.replaceSelection(target.rawText);
@@ -178,7 +183,8 @@ export function registerPasteAndDropHandlers(plugin: ImagePlugin): void {
 			}
 
 			if (plugin.settings.remote.enabled) {
-				const plainText = evt.clipboardData?.getData('text/plain') ?? '';
+				const plainText =
+					evt.clipboardData?.getData('text/plain') ?? '';
 				const remoteTarget = parseRemoteImageText(plainText);
 				if (remoteTarget) {
 					evt.preventDefault();

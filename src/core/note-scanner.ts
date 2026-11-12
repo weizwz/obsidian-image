@@ -142,12 +142,13 @@ async function processRemoteImagesInEditor(
 			);
 			count += 1;
 			if (settings.remote.replaceLink) {
-				const newLink = app.fileManager.generateMarkdownLink(
+				const rawLink = app.fileManager.generateMarkdownLink(
 					savedFile,
 					noteFile.path,
 					'',
 					altText,
 				);
+				const newLink = rawLink.startsWith('!') ? rawLink : `!${rawLink}`;
 				updatedContent = updatedContent.replace(fullMatch, newLink);
 			}
 		} catch {
@@ -242,12 +243,13 @@ export async function processImageUnderCursor(
 				settings,
 			);
 			if (settings.remote.replaceLink) {
-				const newLink = app.fileManager.generateMarkdownLink(
+				const rawLink = app.fileManager.generateMarkdownLink(
 					saved,
 					noteFile.path,
 					'',
 					altText,
 				);
+				const newLink = rawLink.startsWith('!') ? rawLink : `!${rawLink}`;
 				editor.replaceRange(
 					newLink,
 					{ line: cursor.line, ch: match.index ?? 0 },

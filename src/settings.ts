@@ -86,7 +86,7 @@ export class ImageSettingTab extends PluginSettingTab {
 			case 'remote.replaceLink':
 				return settings.remote.replaceLink;
 			default:
-				return super.getControlValue(key);
+				return undefined;
 		}
 	}
 
@@ -133,7 +133,6 @@ export class ImageSettingTab extends PluginSettingTab {
 				settings.remote.replaceLink = Boolean(value);
 				break;
 			default:
-				await super.setControlValue(key, value);
 				return;
 		}
 		await this.plugin.saveSettings();
