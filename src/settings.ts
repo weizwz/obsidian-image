@@ -1,9 +1,4 @@
-import {
-	App,
-	PluginSettingTab,
-	Setting,
-	type SettingDefinitionItem,
-} from 'obsidian';
+import { App, PluginSettingTab, type SettingDefinitionItem } from 'obsidian';
 import type ImagePlugin from './main';
 import type { ImagePluginSettings, TargetFormat } from './types';
 
@@ -120,7 +115,10 @@ export class ImageSettingTab extends PluginSettingTab {
 				settings.compression.maxWidth = Math.max(0, Number(value) || 0);
 				break;
 			case 'compression.maxHeight':
-				settings.compression.maxHeight = Math.max(0, Number(value) || 0);
+				settings.compression.maxHeight = Math.max(
+					0,
+					Number(value) || 0,
+				);
 				break;
 			case 'compression.skipLargerOutput':
 				settings.compression.skipLargerOutput = Boolean(value);
@@ -170,7 +168,7 @@ export class ImageSettingTab extends PluginSettingTab {
 						control: {
 							type: 'text',
 							key: 'paste.filenameTemplate',
-							placeholder: '${noteName}-${timestamp}',
+							placeholder: '${date:YYYYMMDD_HHmmss}',
 						},
 					},
 				],
@@ -279,180 +277,5 @@ export class ImageSettingTab extends PluginSettingTab {
 				],
 			},
 		];
-	}
-
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		new Setting(containerEl).setName('Paste and drop').setHeading();
-
-		new Setting(containerEl)
-			.setName('Enable silent paste and drop processing')
-			.setDesc('Automatically process and organize pasted or dropped images.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.paste.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.paste.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Target folder template')
-			.setDesc(
-				'Variables: ${noteName}, ${noteFolder}, ${date:YYYY-MM-DD}, ${year}, ${month}, ${day}.',
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder('${noteFolder}/assets/${noteName}')
-					.setValue(this.plugin.settings.paste.targetFolder)
-					.onChange(async (value) => {
-						this.plugin.settings.paste.targetFolder = value.trim();
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Filename template')
-			.setDesc(
-				'Variables: ${noteName}, ${originalName}, ${timestamp}, ${date:YYYYMMDDHHmmss}, ${hash:8}.',
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder('${noteName}-${timestamp}')
-					.setValue(this.plugin.settings.paste.filenameTemplate)
-					.onChange(async (value) => {
-						this.plugin.settings.paste.filenameTemplate = value.trim();
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl).setName('Compression and conversion').setHeading();
-
-		new Setting(containerEl)
-			.setName('Enable compression and conversion')
-			.setDesc('Compress or convert images using hardware acceleration.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.compression.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.compression.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Target format')
-			.setDesc('Output image format. Animated GIF and SVG are skipped.')
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption('original', 'Original')
-					.addOption('webp', 'Webp')
-					.addOption('jpeg', 'JPEG')
-					.addOption('png', 'PNG')
-					.setValue(this.plugin.settings.compression.targetFormat)
-					.onChange(async (value) => {
-						this.plugin.settings.compression.targetFormat =
-							value as TargetFormat;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Quality')
-			.setDesc('Compression quality from 1 to 100.')
-			.addSlider((slider) =>
-				slider
-					.setLimits(1, 100, 1)
-					.setValue(this.plugin.settings.compression.quality)
-					.onChange(async (value) => {
-						this.plugin.settings.compression.quality = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Max width')
-			.setDesc('Maximum width in pixels (0 for unlimited).')
-			.addText((text) =>
-				text
-					.setPlaceholder('0')
-					.setValue(String(this.plugin.settings.compression.maxWidth))
-					.onChange(async (value) => {
-						const parsed = Number.parseInt(value, 10);
-						this.plugin.settings.compression.maxWidth =
-							Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Max height')
-			.setDesc('Maximum height in pixels (0 for unlimited).')
-			.addText((text) =>
-				text
-					.setPlaceholder('0')
-					.setValue(String(this.plugin.settings.compression.maxHeight))
-					.onChange(async (value) => {
-						const parsed = Number.parseInt(value, 10);
-						this.plugin.settings.compression.maxHeight =
-							Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Skip larger output')
-			.setDesc('Keep original image if the processed output is larger.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.compression.skipLargerOutput)
-					.onChange(async (value) => {
-						this.plugin.settings.compression.skipLargerOutput = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl).setName('Existing note images').setHeading();
-
-		new Setting(containerEl)
-			.setName('Enable existing image management')
-			.setDesc('Allow organizing and converting existing images in notes.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.existingImages.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.existingImages.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl).setName('Remote images').setHeading();
-
-		new Setting(containerEl)
-			.setName('Enable remote image download')
-			.setDesc('Download remote images when pasting or running commands.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.remote.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.remote.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Replace remote link')
-			.setDesc('Replace remote links with local vault links after download.')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.remote.replaceLink)
-					.onChange(async (value) => {
-						this.plugin.settings.remote.replaceLink = value;
-						await this.plugin.saveSettings();
-					}),
-			);
 	}
 }

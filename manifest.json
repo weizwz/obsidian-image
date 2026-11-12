@@ -2,7 +2,7 @@
 	"id": "image-manager",
 	"name": "Image Manager",
 	"version": "1.0.0",
-	"minAppVersion": "1.4.0",
+	"minAppVersion": "1.13.0",
 	"description": "Automatically compress, convert, rename, and organize pasted, dropped, remote, and existing images.",
 	"author": "weiz",
 	"isDesktopOnly": true
