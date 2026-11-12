@@ -1,9 +1,7 @@
 name: Release Obsidian plugin
 
 on:
-    push:
-        tags:
-            - '*'
+    workflow_dispatch:
 
 jobs:
     build:
@@ -15,16 +13,20 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
             - name: Use Node.js
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
+                  cache: 'pnpm'
 
             - name: Build plugin
               run: |
-                  npm ci
-                  npm run build
+                  pnpm install --frozen-lockfile
+                  pnpm run build
 
             - name: Check for optional styles
               id: styles
