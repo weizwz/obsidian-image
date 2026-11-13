@@ -1,5 +1,8 @@
 export type TargetFormat = 'original' | 'webp' | 'jpeg' | 'png';
 
+export type SupportedLocale = 'en' | 'zh';
+export type LanguageSetting = 'auto' | SupportedLocale;
+
 export interface PasteRuleSettings {
   enabled: boolean;
   targetFolder: string;
@@ -26,6 +29,7 @@ export interface RemoteImagesSettings {
 
 export interface ImagePluginSettings {
   version: number;
+  language: LanguageSetting;
   paste: PasteRuleSettings;
   compression: CompressionSettings;
   existingImages: ExistingImagesSettings;

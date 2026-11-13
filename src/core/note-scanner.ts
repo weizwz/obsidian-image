@@ -1,4 +1,5 @@
 import { App, Editor, MarkdownView, Notice, TFile } from 'obsidian';
+import { t } from '../i18n';
 import type { ImagePluginSettings } from '../types';
 import { getMimeFromExtension, normalizeExtension, processImageBuffer } from './image-processor';
 import { resolveAndPrepareTarget } from './path-resolver';
@@ -116,7 +117,7 @@ async function processRemoteImagesInEditor(
         updatedContent = updatedContent.replace(fullMatch, newLink);
       }
     } catch {
-      new Notice(`Failed to download remote image: ${remoteUrl}`);
+      new Notice(t().notices.failedDownloadRemote(remoteUrl));
     }
   }
 
@@ -147,7 +148,7 @@ export async function processAllImagesInNote(
       await processSingleImageFile(app, imageFile, noteFile, settings);
       processedCount += 1;
     } catch {
-      new Notice(`Failed to process image: ${imageFile.name}`);
+      new Notice(t().notices.failedProcessImage(imageFile.name));
     }
   }
 
@@ -156,7 +157,7 @@ export async function processAllImagesInNote(
     processedCount += remoteCount;
   }
 
-  new Notice(`Processed ${processedCount} image(s) in current note.`);
+  new Notice(t().notices.processedCountInNote(processedCount));
 }
 
 export async function processImageUnderCursor(
@@ -179,7 +180,7 @@ export async function processImageUnderCursor(
     const linked = app.metadataCache.getFirstLinkpathDest(linkpath, noteFile.path);
     if (linked instanceof TFile && isImageFile(linked)) {
       await processSingleImageFile(app, linked, noteFile, settings);
-      new Notice(`Processed image: ${linked.name}`);
+      new Notice(t().notices.processedImage(linked.name));
       return;
     }
   }
@@ -205,7 +206,7 @@ export async function processImageUnderCursor(
           },
         );
       }
-      new Notice(`Processed remote image: ${saved.name}`);
+      new Notice(t().notices.processedRemoteImage(saved.name));
       return;
     }
 
@@ -215,10 +216,10 @@ export async function processImageUnderCursor(
     );
     if (linked instanceof TFile && isImageFile(linked)) {
       await processSingleImageFile(app, linked, noteFile, settings);
-      new Notice(`Processed image: ${linked.name}`);
+      new Notice(t().notices.processedImage(linked.name));
       return;
     }
   }
 
-  new Notice('No image found on the current line.');
+  new Notice(t().notices.noImageOnLine);
 }

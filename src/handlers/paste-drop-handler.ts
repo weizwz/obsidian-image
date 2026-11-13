@@ -1,5 +1,6 @@
 import { App, Editor, Notice, TFile } from 'obsidian';
 import type ImagePlugin from '../main';
+import { t } from '../i18n';
 import type { ImagePluginSettings } from '../types';
 import {
   getExtensionFromMime,
@@ -80,7 +81,7 @@ async function processAndInsertFiles(
       const link = rawLink.startsWith('!') ? rawLink : `!${rawLink}`;
       links.push(link);
     } catch {
-      new Notice(`Failed to process image: ${file.name}`);
+      new Notice(t().notices.failedProcessImage(file.name));
     }
   }
 
@@ -143,7 +144,7 @@ async function processAndInsertRemoteTarget(
       editor.replaceSelection(target.rawText);
     }
   } catch {
-    new Notice(`Failed to download remote image: ${target.url}`);
+    new Notice(t().notices.failedDownloadRemote(target.url));
     editor.replaceSelection(target.rawText);
   }
 }

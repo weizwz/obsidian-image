@@ -1,11 +1,13 @@
 import { App, PluginSettingTab, type SettingDefinitionItem } from 'obsidian';
+import { setLanguageSetting, t } from './i18n';
 import type ImagePlugin from './main';
-import type { ImagePluginSettings, TargetFormat } from './types';
+import type { ImagePluginSettings, LanguageSetting, TargetFormat } from './types';
 
 export type { ImagePluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: ImagePluginSettings = {
   version: 1,
+  language: 'auto',
   paste: {
     enabled: true,
     targetFolder: '${noteFolder}/assets/${noteName}',
@@ -36,8 +38,14 @@ export function mergeSettings(
   if (!saved) {
     return structuredClone(defaults);
   }
+  const language: LanguageSetting =
+    saved.language === 'en' || saved.language === 'zh' || saved.language === 'auto'
+      ? saved.language
+      : defaults.language;
+
   return {
     version: defaults.version,
+    language,
     paste: Object.assign({}, defaults.paste, saved.paste),
     compression: Object.assign({}, defaults.compression, saved.compression),
     existingImages: Object.assign({}, defaults.existingImages, saved.existingImages),
@@ -57,6 +65,8 @@ export class ImageSettingTab extends PluginSettingTab {
   getControlValue(key: string): unknown {
     const { settings } = this.plugin;
     switch (key) {
+      case 'language':
+        return settings.language;
       case 'paste.enabled':
         return settings.paste.enabled;
       case 'paste.targetFolder':
@@ -89,6 +99,16 @@ export class ImageSettingTab extends PluginSettingTab {
   async setControlValue(key: string, value: unknown): Promise<void> {
     const { settings } = this.plugin;
     switch (key) {
+      case 'language': {
+        const nextLang: LanguageSetting =
+          value === 'en' || value === 'zh' || value === 'auto' ? value : 'auto';
+        settings.language = nextLang;
+        setLanguageSetting(nextLang);
+        await this.plugin.saveSettings();
+        this.plugin.refreshLocalizedCommands();
+        this.update();
+        return;
+      }
       case 'paste.enabled':
         settings.paste.enabled = Boolean(value);
         break;
@@ -132,22 +152,39 @@ export class ImageSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
+    const i18n = t(this.plugin.settings.language).settings;
+
     return [
       {
         type: 'group',
-        heading: 'Paste and drop',
+        heading: i18n.language.heading,
         items: [
           {
-            name: 'Enable silent paste and drop processing',
-            desc: 'Automatically process and organize pasted or dropped images.',
+            name: i18n.language.name,
+            desc: i18n.language.desc,
+            control: {
+              type: 'dropdown',
+              key: 'language',
+              options: i18n.language.options,
+            },
+          },
+        ],
+      },
+      {
+        type: 'group',
+        heading: i18n.paste.heading,
+        items: [
+          {
+            name: i18n.paste.enableName,
+            desc: i18n.paste.enableDesc,
             control: {
               type: 'toggle',
               key: 'paste.enabled',
             },
           },
           {
-            name: 'Target folder template',
-            desc: 'Variables: ${noteName}, ${noteFolder}, ${date:YYYY-MM-DD}, ${year}, ${month}, ${day}.',
+            name: i18n.paste.targetFolderName,
+            desc: i18n.paste.targetFolderDesc,
             control: {
               type: 'text',
               key: 'paste.targetFolder',
@@ -155,8 +192,8 @@ export class ImageSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Filename template',
-            desc: 'Variables: ${noteName}, ${originalName}, ${timestamp}, ${date:YYYYMMDDHHmmss}, ${hash:8}.',
+            name: i18n.paste.filenameTemplateName,
+            desc: i18n.paste.filenameTemplateDesc,
             control: {
               type: 'text',
               key: 'paste.filenameTemplate',
@@ -167,33 +204,28 @@ export class ImageSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'Compression and conversion',
+        heading: i18n.compression.heading,
         items: [
           {
-            name: 'Enable compression and conversion',
-            desc: 'Compress or convert images using hardware acceleration.',
+            name: i18n.compression.enableName,
+            desc: i18n.compression.enableDesc,
             control: {
               type: 'toggle',
               key: 'compression.enabled',
             },
           },
           {
-            name: 'Target format',
-            desc: 'Output image format. Animated GIF and SVG are skipped.',
+            name: i18n.compression.targetFormatName,
+            desc: i18n.compression.targetFormatDesc,
             control: {
               type: 'dropdown',
               key: 'compression.targetFormat',
-              options: {
-                original: 'Original',
-                webp: 'Webp',
-                jpeg: 'JPEG',
-                png: 'PNG',
-              },
+              options: i18n.compression.formatOptions,
             },
           },
           {
-            name: 'Quality',
-            desc: 'Compression quality from 1 to 100.',
+            name: i18n.compression.qualityName,
+            desc: i18n.compression.qualityDesc,
             control: {
               type: 'slider',
               key: 'compression.quality',
@@ -203,8 +235,8 @@ export class ImageSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Max width',
-            desc: 'Maximum width in pixels (0 for unlimited).',
+            name: i18n.compression.maxWidthName,
+            desc: i18n.compression.maxWidthDesc,
             control: {
               type: 'number',
               key: 'compression.maxWidth',
@@ -213,8 +245,8 @@ export class ImageSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Max height',
-            desc: 'Maximum height in pixels (0 for unlimited).',
+            name: i18n.compression.maxHeightName,
+            desc: i18n.compression.maxHeightDesc,
             control: {
               type: 'number',
               key: 'compression.maxHeight',
@@ -223,8 +255,8 @@ export class ImageSettingTab extends PluginSettingTab {
             },
           },
           {
-            name: 'Skip larger output',
-            desc: 'Keep original image if the processed output is larger.',
+            name: i18n.compression.skipLargerName,
+            desc: i18n.compression.skipLargerDesc,
             control: {
               type: 'toggle',
               key: 'compression.skipLargerOutput',
@@ -234,11 +266,11 @@ export class ImageSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'Existing note images',
+        heading: i18n.existingImages.heading,
         items: [
           {
-            name: 'Enable existing image management',
-            desc: 'Allow organizing and converting existing images in notes.',
+            name: i18n.existingImages.enableName,
+            desc: i18n.existingImages.enableDesc,
             control: {
               type: 'toggle',
               key: 'existingImages.enabled',
@@ -248,19 +280,19 @@ export class ImageSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'Remote images',
+        heading: i18n.remote.heading,
         items: [
           {
-            name: 'Enable remote image download',
-            desc: 'Download remote images when pasting or running commands.',
+            name: i18n.remote.enableName,
+            desc: i18n.remote.enableDesc,
             control: {
               type: 'toggle',
               key: 'remote.enabled',
             },
           },
           {
-            name: 'Replace remote link',
-            desc: 'Replace remote links with local vault links after download.',
+            name: i18n.remote.replaceLinkName,
+            desc: i18n.remote.replaceLinkDesc,
             control: {
               type: 'toggle',
               key: 'remote.replaceLink',
