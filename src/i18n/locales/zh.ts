@@ -36,7 +36,8 @@ const zh: TranslationSchema = {
     confirmStartBtn: '开始处理',
     confirmCancelBtn: '取消',
     progressTitle: '正在批量处理图片...',
-    progressWarning: '正在处理图片并同步更新文章链接，请勿关闭窗口。如需中止请点击下方「安全停止」。',
+    progressWarning:
+      '正在处理图片并同步更新文章链接，请勿关闭窗口。如需中止请点击下方「安全停止」。',
     progressStatus: (current, total, fileName) => `正在处理 (${current} / ${total})：${fileName}`,
     safeStopBtn: '安全停止',
     stoppingBtn: '正在完成当前图片并安全停止...',
@@ -90,9 +91,9 @@ const zh: TranslationSchema = {
       modeDesc:
         '选择批量执行的操作类型。修改位置与名称遵循上方【粘贴与拖拽】中的模板配置；转换格式与压缩遵循上方【压缩与格式转换】中的参数配置（非笔记引用的图片不会处理）。',
       modeOptions: {
-        'rename-and-move': '1. 修改图片名称和位置',
-        'compress-and-convert': '2. 转换图片格式并压缩',
-        both: '3. 以上都有',
+        'rename-and-move': '修改图片名称和位置',
+        'compress-and-convert': '转换图片格式并压缩',
+        both: '修改名称位置并转换格式压缩',
       },
       currentNoteName: '批量处理当前笔记中的图片',
       currentNoteDesc: (activeNoteName) =>

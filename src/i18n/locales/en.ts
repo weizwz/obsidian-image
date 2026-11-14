@@ -39,8 +39,7 @@ const en: TranslationSchema = {
     progressTitle: 'Batch processing images...',
     progressWarning:
       'Processing images and updating note links. Do not close the window or edit affected notes.',
-    progressStatus: (current, total, fileName) =>
-      `Processing (${current} / ${total}): ${fileName}`,
+    progressStatus: (current, total, fileName) => `Processing (${current} / ${total}): ${fileName}`,
     safeStopBtn: 'Safe stop',
     stoppingBtn: 'Finishing current image and stopping...',
   },
@@ -93,9 +92,9 @@ const en: TranslationSchema = {
       modeDesc:
         'Select what to process. Folder and naming rules follow paste and drop settings; format and compression rules follow compression settings.',
       modeOptions: {
-        'rename-and-move': '1. Rename and move images',
-        'compress-and-convert': '2. Convert format and compress',
-        both: '3. Both rename/move and compress/convert',
+        'rename-and-move': 'Rename and move images',
+        'compress-and-convert': 'Convert format and compress',
+        both: 'Both rename/move and compress/convert',
       },
       currentNoteName: 'Batch process images in current note',
       currentNoteDesc: (activeNoteName) =>
