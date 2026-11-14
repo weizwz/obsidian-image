@@ -9,24 +9,24 @@ export const DEFAULT_SETTINGS: ImagePluginSettings = {
   version: 1,
   language: 'auto',
   paste: {
-    enabled: true,
+    enabled: false,
     targetFolder: '${noteFolder}/assets/${noteName}',
     filenameTemplate: '${noteName}-${timestamp}',
   },
   compression: {
-    enabled: true,
-    targetFormat: 'webp',
-    quality: 80,
+    enabled: false,
+    targetFormat: 'original',
+    quality: 100,
     maxWidth: 0,
     maxHeight: 0,
     skipLargerOutput: true,
   },
   existingImages: {
-    enabled: true,
+    enabled: false,
   },
   remote: {
     enabled: false,
-    replaceLink: true,
+    replaceLink: false,
   },
   extensions: {},
 };
