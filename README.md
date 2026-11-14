@@ -63,4 +63,4 @@ pnpm run lint
 
 ## License
 
-[0-BSD](./LICENSE)
+[MIT](./LICENSE)

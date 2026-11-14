@@ -63,4 +63,4 @@ pnpm run lint
 
 ## 开源协议
 
-[0-BSD](./LICENSE)
+[MIT](./LICENSE)
