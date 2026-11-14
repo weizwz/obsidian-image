@@ -28,9 +28,9 @@ const zh: TranslationSchema = {
     imageCountLabel: (count) => `待扫描笔记图片：共 ${count} 张（非笔记引用的孤立图片将自动忽略）`,
     modeLabel: (modeText) => `处理内容：${modeText}`,
     ruleHintRename: (folderTpl, nameTpl) =>
-      `位置与命名规则（遵循【粘贴与拖拽】配置）：目录「${folderTpl || '/'}」，文件名「${nameTpl}」`,
+      `命名与位置规则（遵循【命名与位置】配置）：目录「${folderTpl || '/'}」，文件名「${nameTpl}」`,
     ruleHintCompress: (format, quality, maxW, maxH) =>
-      `压缩与转换规则（遵循【压缩与格式转换】配置）：格式「${format}」，质量 ${quality}，最大尺寸 ${maxW || '不限'}×${maxH || '不限'}`,
+      `转换与压缩规则（遵循【转换与压缩】配置）：格式「${format}」，质量 ${quality}，最大尺寸 ${maxW || '不限'}×${maxH || '不限'}`,
     warningHint:
       '注意：处理期间请勿关闭 Obsidian 或手动编辑相关笔记。每张图片处理后会同步更新对应文章内的链接，被替换的原文件将移入系统/库回收站（.trash）以备恢复。',
     confirmStartBtn: '开始处理',
@@ -54,22 +54,22 @@ const zh: TranslationSchema = {
       },
     },
     paste: {
-      heading: '粘贴与拖拽',
-      enableName: '启用静默粘贴与拖拽处理',
-      enableDesc: '自动处理并整理粘贴或拖拽进来的图片。',
+      heading: '命名与位置',
+      enableName: '启用',
+      enableDesc: '对粘贴或拖拽进来的图片自动重命名并移动到对应位置。',
       targetFolderName: '目标文件夹模板',
       targetFolderDesc:
-        '支持变量：${noteName}, ${noteFolder}, ${date:YYYY-MM-DD}, ${year}, ${month}, ${day}。',
+        '图片移动位置，无对应文件夹则自动创建。支持变量：笔记名称 ${noteName}, 笔记所处文件夹名称 ${noteFolder}, 日期 ${date:YYYY-MM-DD}, 年 ${year}, 月 ${month}, 日 ${day}。',
       filenameTemplateName: '文件名模板',
       filenameTemplateDesc:
-        '支持变量：${noteName}, ${originalName}, ${timestamp}, ${date:YYYYMMDDHHmmss}, ${hash:8}。',
+        '图名命名规则。支持变量：笔记名称 ${noteName},图片原名称 ${originalName}, 时间戳 ${timestamp}, 日期 ${date:YYYYMMDDHHmmss},  哈希 ${hash:8}。',
     },
     compression: {
-      heading: '压缩与格式转换',
-      enableName: '启用压缩与格式转换',
-      enableDesc: '使用硬件加速压缩或转换图片格式。',
+      heading: '转换与压缩',
+      enableName: '启用',
+      enableDesc: '对粘贴或拖拽进来的图片自动转换格式并压缩。',
       targetFormatName: '目标格式',
-      targetFormatDesc: '输出图片格式。动态 GIF 和 SVG 将自动跳过。',
+      targetFormatDesc: '转换后的图片格式，动态 GIF、SVG 和视频等将自动跳过。',
       formatOptions: {
         original: '保持原格式',
         webp: 'Webp',
@@ -89,7 +89,7 @@ const zh: TranslationSchema = {
       heading: '批量处理',
       modeName: '批量处理内容',
       modeDesc:
-        '选择批量执行的操作类型。修改位置与名称遵循上方【粘贴与拖拽】中的模板配置；转换格式与压缩遵循上方【压缩与格式转换】中的参数配置（非笔记引用的图片不会处理）。',
+        '选择批量执行的操作类型。修改名称与位置遵循上方【命名与位置】中的模板配置；转换格式与压缩遵循上方【转换与压缩】中的参数配置（非笔记引用的图片不会处理）。',
       modeOptions: {
         'rename-and-move': '修改图片名称和位置',
         'compress-and-convert': '转换图片格式并压缩',

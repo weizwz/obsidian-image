@@ -29,9 +29,9 @@ const en: TranslationSchema = {
       `Referenced images: ${count} (unreferenced images are automatically ignored)`,
     modeLabel: (modeText) => `Operation mode: ${modeText}`,
     ruleHintRename: (folderTpl, nameTpl) =>
-      `Naming & folder rules (from Paste and drop): folder "${folderTpl || '/'}", filename "${nameTpl}"`,
+      `Naming & location rules (from Naming and location): folder "${folderTpl || '/'}", filename "${nameTpl}"`,
     ruleHintCompress: (format, quality, maxW, maxH) =>
-      `Compression rules (from Compression and conversion): format "${format}", quality ${quality}, max ${maxW || 'unlimited'}×${maxH || 'unlimited'}`,
+      `Conversion & compression rules (from Conversion and compression): format "${format}", quality ${quality}, max ${maxW || 'unlimited'}×${maxH || 'unlimited'}`,
     warningHint:
       'Please do not close Obsidian or edit affected notes while processing. Note links will be updated per image, and replaced originals will be moved to .trash for recovery.',
     confirmStartBtn: 'Start processing',
@@ -55,22 +55,22 @@ const en: TranslationSchema = {
       },
     },
     paste: {
-      heading: 'Paste and drop',
-      enableName: 'Enable silent paste and drop processing',
-      enableDesc: 'Automatically process and organize pasted or dropped images.',
+      heading: 'Naming and location',
+      enableName: 'Enable',
+      enableDesc: 'Automatically rename and move pasted or dropped images to the target location.',
       targetFolderName: 'Target folder template',
       targetFolderDesc:
-        'Variables: ${noteName}, ${noteFolder}, ${date:YYYY-MM-DD}, ${year}, ${month}, ${day}.',
+        'Target location for moved images; created automatically if missing. Variables: note name ${noteName}, note folder ${noteFolder}, date ${date:YYYY-MM-DD}, year ${year}, month ${month}, day ${day}.',
       filenameTemplateName: 'Filename template',
       filenameTemplateDesc:
-        'Variables: ${noteName}, ${originalName}, ${timestamp}, ${date:YYYYMMDDHHmmss}, ${hash:8}.',
+        'Image naming rule. Variables: note name ${noteName}, original name ${originalName}, timestamp ${timestamp}, date ${date:YYYYMMDDHHmmss}, hash ${hash:8}.',
     },
     compression: {
-      heading: 'Compression and conversion',
-      enableName: 'Enable compression and conversion',
-      enableDesc: 'Compress or convert images using hardware acceleration.',
+      heading: 'Conversion and compression',
+      enableName: 'Enable',
+      enableDesc: 'Automatically convert and compress pasted or dropped images.',
       targetFormatName: 'Target format',
-      targetFormatDesc: 'Output image format. Animated GIF and SVG are skipped.',
+      targetFormatDesc: 'Target image format after conversion. Animated GIF, SVG, and videos are automatically skipped.',
       formatOptions: {
         original: 'Original',
         webp: 'Webp',
@@ -90,7 +90,7 @@ const en: TranslationSchema = {
       heading: 'Batch processing',
       modeName: 'Batch operation mode',
       modeDesc:
-        'Select what to process. Folder and naming rules follow paste and drop settings; format and compression rules follow compression settings.',
+        'Select what to process. Naming and location rules follow naming and location settings; format and compression rules follow conversion and compression settings (unreferenced images are ignored).',
       modeOptions: {
         'rename-and-move': 'Rename and move images',
         'compress-and-convert': 'Convert format and compress',
