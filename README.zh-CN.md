@@ -49,16 +49,16 @@
 
 ```bash
 # 安装依赖
-npm install
+pnpm install
 
 # 启动开发监听编译
-npm run dev
+pnpm run dev
 
 # 生产环境构建与类型检查
-npm run build
+pnpm run build
 
 # 运行代码规范检查
-npm run lint
+pnpm run lint
 ```
 
 ## 开源协议

@@ -29,10 +29,10 @@ A lightweight, high-performance desktop image management plugin for [Obsidian](h
 
 ## Commands
 
-| Command | Description |
-| :--- | :--- |
-| **Batch process images in current note** | Scan and batch process all local images referenced in the active Markdown note. |
-| **Process image on current line** | Process the single local or remote image located on the current editor cursor line. |
+| Command                                  | Description                                                                         |
+| :--------------------------------------- | :---------------------------------------------------------------------------------- |
+| **Batch process images in current note** | Scan and batch process all local images referenced in the active Markdown note.     |
+| **Process image on current line**        | Process the single local or remote image located on the current editor cursor line. |
 
 ## Installation
 
@@ -49,16 +49,16 @@ A lightweight, high-performance desktop image management plugin for [Obsidian](h
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development build in watch mode
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Run ESLint
-npm run lint
+pnpm run lint
 ```
 
 ## License
