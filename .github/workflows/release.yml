@@ -2,8 +2,10 @@ name: Release Obsidian plugin
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - master
+    paths:
+      - 'manifest.json'
 
 jobs:
   build:
@@ -46,9 +48,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag="${GITHUB_REF#refs/tags/}"
+          tag=$(jq -r '.version' manifest.json)
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists, skipping."
+            exit 0
+          fi
 
           gh release create "$tag" \
-            --title="$tag" \
-            --draft \
+            --target "${GITHUB_SHA}" \
+            --title "$tag" \
+            --generate-notes \
             dist/main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
