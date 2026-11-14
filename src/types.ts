@@ -3,6 +3,15 @@ export type TargetFormat = 'original' | 'webp' | 'jpeg' | 'png';
 export type SupportedLocale = 'en' | 'zh';
 export type LanguageSetting = 'auto' | SupportedLocale;
 
+export type BatchProcessMode = 'rename-and-move' | 'compress-and-convert' | 'both';
+
+export interface PendingBatchTransaction {
+  oldPath: string;
+  newPath: string;
+  affectedNotes: string[];
+  timestamp: number;
+}
+
 export interface PasteRuleSettings {
   enabled: boolean;
   targetFolder: string;
@@ -19,7 +28,8 @@ export interface CompressionSettings {
 }
 
 export interface ExistingImagesSettings {
-  enabled: boolean;
+  mode: BatchProcessMode;
+  pendingTransaction?: PendingBatchTransaction | null;
 }
 
 export interface RemoteImagesSettings {
@@ -48,4 +58,23 @@ export interface ResolvedTarget {
   folderPath: string;
   fileName: string;
   fullPath: string;
+}
+
+export interface VaultImageStats {
+  referencedImages: number;
+  referencedNotes: number;
+  unreferencedImages: number;
+  totalReferencedBytes: number;
+}
+
+export interface BatchProcessResult {
+  processed: number;
+  skipped: number;
+  failed: number;
+  savedBytes: number;
+  cancelled: boolean;
+}
+
+export interface BatchRemoteImageHandler {
+  processRemoteImagesInNotes: (notePaths: string[]) => Promise<number>;
 }

@@ -1,12 +1,9 @@
-import type { LanguageSetting } from '../types';
+import type { BatchProcessMode, LanguageSetting } from '../types';
 
 export interface TranslationSchema {
   commands: {
     processAllInNote: string;
     processSingleUnderCursor: string;
-  };
-  menu: {
-    compressAndOrganize: string;
   };
   notices: {
     processedImage: (name: string) => string;
@@ -15,6 +12,29 @@ export interface TranslationSchema {
     failedDownloadRemote: (url: string) => string;
     processedCountInNote: (count: number) => string;
     noImageOnLine: string;
+    noActiveMarkdownNote: string;
+    noReferencedImages: string;
+    batchCompleted: (processed: number, skipped: number, failed: number, savedText: string) => string;
+    batchCancelled: (processed: number, skipped: number) => string;
+    recoveryNoPending: string;
+    recoveryRepaired: (oldPath: string) => string;
+  };
+  modals: {
+    confirmTitle: string;
+    scopeCurrentNote: (noteName: string) => string;
+    scopeAllVault: (noteCount: number) => string;
+    imageCountLabel: (count: number) => string;
+    modeLabel: (modeText: string) => string;
+    ruleHintRename: (folderTpl: string, nameTpl: string) => string;
+    ruleHintCompress: (format: string, quality: number, maxW: number, maxH: number) => string;
+    warningHint: string;
+    confirmStartBtn: string;
+    confirmCancelBtn: string;
+    progressTitle: string;
+    progressWarning: string;
+    progressStatus: (current: number, total: number, fileName: string) => string;
+    safeStopBtn: string;
+    stoppingBtn: string;
   };
   settings: {
     language: {
@@ -53,10 +73,26 @@ export interface TranslationSchema {
       skipLargerName: string;
       skipLargerDesc: string;
     };
-    existingImages: {
+    batch: {
       heading: string;
-      enableName: string;
-      enableDesc: string;
+      modeName: string;
+      modeDesc: string;
+      modeOptions: Record<BatchProcessMode, string>;
+      currentNoteName: string;
+      currentNoteDesc: (activeNoteName: string | null) => string;
+      currentNoteBtn: string;
+      allVaultName: string;
+      allVaultDesc: string;
+      allVaultBtn: string;
+      recoveryName: string;
+      recoveryDesc: (hasPending: boolean) => string;
+      recoveryBtn: string;
+      statsSummary: (
+        referencedImages: number,
+        referencedNotes: number,
+        unreferencedImages: number,
+        sizeMB: string,
+      ) => string;
     };
     remote: {
       heading: string;

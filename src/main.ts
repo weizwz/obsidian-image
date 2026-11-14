@@ -1,13 +1,9 @@
-import { Editor, MarkdownView, Notice, Plugin, TFile } from 'obsidian';
-import {
-  isImageFile,
-  processAllImagesInNote,
-  processImageUnderCursor,
-  processSingleImageFile,
-} from './core/note-scanner';
+import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
+import { processImageUnderCursor, recoverPendingBatchTransaction } from './core/note-scanner';
 import { registerPasteAndDropHandlers } from './handlers/paste-drop-handler';
 import { setLanguageSetting, t } from './i18n';
 import { DEFAULT_SETTINGS, ImagePluginSettings, ImageSettingTab, mergeSettings } from './settings';
+import { runInteractiveBatchProcess } from './ui/batch-modals';
 
 export default class ImagePlugin extends Plugin {
   settings!: ImagePluginSettings;
@@ -18,33 +14,17 @@ export default class ImagePlugin extends Plugin {
     registerPasteAndDropHandlers(this);
     this.registerLocalizedCommands();
 
-    this.registerEvent(
-      this.app.workspace.on('file-menu', (menu, file) => {
-        if (
-          !this.settings.existingImages.enabled ||
-          !(file instanceof TFile) ||
-          !isImageFile(file)
-        ) {
-          return;
-        }
-        menu.addItem((item) => {
-          item
-            .setTitle(t().menu.compressAndOrganize)
-            .setIcon('image')
-            .onClick(() => {
-              const activeNote = this.app.workspace.getActiveFile();
-              void processSingleImageFile(this.app, file, activeNote, this.settings).then(
-                (updated) => {
-                  new Notice(t().notices.processedImage(updated.name));
-                },
-                () => {
-                  new Notice(t().notices.failedProcessImage(file.name));
-                },
-              );
-            });
+    this.app.workspace.onLayoutReady(() => {
+      if (this.settings.existingImages.pendingTransaction) {
+        void recoverPendingBatchTransaction(this.app, this.settings, () =>
+          this.saveSettings(),
+        ).then((repairedPath) => {
+          if (repairedPath) {
+            new Notice(t(this.settings.language).notices.recoveryRepaired(repairedPath));
+          }
         });
-      }),
-    );
+      }
+    });
   }
 
   onunload() {}
@@ -56,15 +36,18 @@ export default class ImagePlugin extends Plugin {
       id: 'process-all-images-in-current-note',
       name: cmdText.processAllInNote,
       checkCallback: (checking: boolean) => {
-        if (!this.settings.existingImages.enabled) {
-          return false;
-        }
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view || !view.file) {
           return false;
         }
         if (!checking) {
-          void processAllImagesInNote(this.app, view, this.settings);
+          void runInteractiveBatchProcess(
+            this.app,
+            'current-note',
+            [view.file],
+            this.settings,
+            () => this.saveSettings(),
+          );
         }
         return true;
       },
@@ -74,7 +57,7 @@ export default class ImagePlugin extends Plugin {
       id: 'process-single-image-under-cursor',
       name: cmdText.processSingleUnderCursor,
       editorCheckCallback: (checking: boolean, editor: Editor, ctx) => {
-        if (!this.settings.existingImages.enabled || !ctx.file) {
+        if (!ctx.file) {
           return false;
         }
         if (!checking) {

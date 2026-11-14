@@ -1,12 +1,14 @@
-import { App, PluginSettingTab, type SettingDefinitionItem } from 'obsidian';
+import { App, Notice, PluginSettingTab, type SettingDefinitionItem, TFile } from 'obsidian';
+import { recoverPendingBatchTransaction, scanVaultImageStats } from './core/note-scanner';
 import { setLanguageSetting, t } from './i18n';
 import type ImagePlugin from './main';
-import type { ImagePluginSettings, LanguageSetting, TargetFormat } from './types';
+import type { BatchProcessMode, ImagePluginSettings, LanguageSetting, TargetFormat } from './types';
+import { runInteractiveBatchProcess } from './ui/batch-modals';
 
 export type { ImagePluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: ImagePluginSettings = {
-  version: 1,
+  version: 2,
   language: 'auto',
   paste: {
     enabled: false,
@@ -22,7 +24,8 @@ export const DEFAULT_SETTINGS: ImagePluginSettings = {
     skipLargerOutput: true,
   },
   existingImages: {
-    enabled: false,
+    mode: 'both',
+    pendingTransaction: null,
   },
   remote: {
     enabled: false,
@@ -30,6 +33,10 @@ export const DEFAULT_SETTINGS: ImagePluginSettings = {
   },
   extensions: {},
 };
+
+function isValidBatchMode(mode: unknown): mode is BatchProcessMode {
+  return mode === 'rename-and-move' || mode === 'compress-and-convert' || mode === 'both';
+}
 
 export function mergeSettings(
   defaults: ImagePluginSettings,
@@ -43,12 +50,20 @@ export function mergeSettings(
       ? saved.language
       : defaults.language;
 
+  const savedMode = saved.existingImages?.mode;
+  const mode: BatchProcessMode = isValidBatchMode(savedMode)
+    ? savedMode
+    : defaults.existingImages.mode;
+
   return {
     version: defaults.version,
     language,
     paste: Object.assign({}, defaults.paste, saved.paste),
     compression: Object.assign({}, defaults.compression, saved.compression),
-    existingImages: Object.assign({}, defaults.existingImages, saved.existingImages),
+    existingImages: {
+      mode,
+      pendingTransaction: saved.existingImages?.pendingTransaction ?? null,
+    },
     remote: Object.assign({}, defaults.remote, saved.remote),
     extensions: Object.assign({}, defaults.extensions, saved.extensions),
   };
@@ -60,6 +75,14 @@ export class ImageSettingTab extends PluginSettingTab {
   constructor(app: App, plugin: ImagePlugin) {
     super(app, plugin);
     this.plugin = plugin;
+  }
+
+  private getActiveMarkdownFile(): TFile | null {
+    const file = this.app.workspace.getActiveFile();
+    if (file instanceof TFile && file.extension.toLowerCase() === 'md') {
+      return file;
+    }
+    return null;
   }
 
   getControlValue(key: string): unknown {
@@ -85,8 +108,8 @@ export class ImageSettingTab extends PluginSettingTab {
         return settings.compression.maxHeight;
       case 'compression.skipLargerOutput':
         return settings.compression.skipLargerOutput;
-      case 'existingImages.enabled':
-        return settings.existingImages.enabled;
+      case 'existingImages.mode':
+        return settings.existingImages.mode;
       case 'remote.enabled':
         return settings.remote.enabled;
       case 'remote.replaceLink':
@@ -136,8 +159,10 @@ export class ImageSettingTab extends PluginSettingTab {
       case 'compression.skipLargerOutput':
         settings.compression.skipLargerOutput = Boolean(value);
         break;
-      case 'existingImages.enabled':
-        settings.existingImages.enabled = Boolean(value);
+      case 'existingImages.mode':
+        if (isValidBatchMode(value)) {
+          settings.existingImages.mode = value;
+        }
         break;
       case 'remote.enabled':
         settings.remote.enabled = Boolean(value);
@@ -152,7 +177,11 @@ export class ImageSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
-    const i18n = t(this.plugin.settings.language).settings;
+    const lang = this.plugin.settings.language;
+    const i18n = t(lang).settings;
+    const notices = t(lang).notices;
+    const activeNote = this.getActiveMarkdownFile();
+    const hasPending = Boolean(this.plugin.settings.existingImages.pendingTransaction);
 
     return [
       {
@@ -266,36 +295,103 @@ export class ImageSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: i18n.existingImages.heading,
+        heading: i18n.batch.heading,
         items: [
           {
-            name: i18n.existingImages.enableName,
-            desc: i18n.existingImages.enableDesc,
+            name: i18n.batch.modeName,
+            desc: i18n.batch.modeDesc,
             control: {
-              type: 'toggle',
-              key: 'existingImages.enabled',
-            },
-          },
-        ],
-      },
-      {
-        type: 'group',
-        heading: i18n.remote.heading,
-        items: [
-          {
-            name: i18n.remote.enableName,
-            desc: i18n.remote.enableDesc,
-            control: {
-              type: 'toggle',
-              key: 'remote.enabled',
+              type: 'dropdown',
+              key: 'existingImages.mode',
+              options: i18n.batch.modeOptions,
             },
           },
           {
-            name: i18n.remote.replaceLinkName,
-            desc: i18n.remote.replaceLinkDesc,
-            control: {
-              type: 'toggle',
-              key: 'remote.replaceLink',
+            name: i18n.batch.currentNoteName,
+            desc: i18n.batch.currentNoteDesc(activeNote?.name ?? null),
+            render: (setting) => {
+              setting.addButton((btn) => {
+                btn
+                  .setButtonText(i18n.batch.currentNoteBtn)
+                  .setDisabled(!activeNote)
+                  .onClick(() => {
+                    const currentActive = this.getActiveMarkdownFile();
+                    if (!currentActive) {
+                      new Notice(notices.noActiveMarkdownNote);
+                      return;
+                    }
+                    void runInteractiveBatchProcess(
+                      this.app,
+                      'current-note',
+                      [currentActive],
+                      this.plugin.settings,
+                      () => this.plugin.saveSettings(),
+                      () => this.update(),
+                    );
+                  });
+              });
+            },
+          },
+          {
+            name: i18n.batch.allVaultName,
+            desc: i18n.batch.allVaultDesc,
+            render: (setting) => {
+              setting.addButton((btn) => {
+                btn.setButtonText(i18n.batch.allVaultBtn).onClick(() => {
+                  const allNotes = this.app.vault.getMarkdownFiles();
+                  void runInteractiveBatchProcess(
+                    this.app,
+                    'all-vault',
+                    allNotes,
+                    this.plugin.settings,
+                    () => this.plugin.saveSettings(),
+                    () => this.update(),
+                  );
+                });
+              });
+            },
+          },
+          {
+            name: i18n.batch.recoveryName,
+            desc: i18n.batch.recoveryDesc(hasPending),
+            render: (setting) => {
+              setting.addButton((btn) => {
+                if (hasPending) {
+                  btn.setCta();
+                }
+                btn.setButtonText(i18n.batch.recoveryBtn).onClick(() => {
+                  void recoverPendingBatchTransaction(
+                    this.app,
+                    this.plugin.settings,
+                    () => this.plugin.saveSettings(),
+                  ).then((repairedPath) => {
+                    if (repairedPath) {
+                      new Notice(notices.recoveryRepaired(repairedPath));
+                    } else {
+                      new Notice(notices.recoveryNoPending);
+                    }
+                    this.update();
+                  });
+                });
+              });
+            },
+          },
+          {
+            name: '',
+            searchable: false,
+            render: (setting) => {
+              setting.settingEl.addClass('image-batch-stats-row');
+              void scanVaultImageStats(this.app).then((stats) => {
+                const sizeMB = (stats.totalReferencedBytes / (1024 * 1024)).toFixed(2);
+                setting.setDesc(
+                  i18n.batch.statsSummary(
+                    stats.referencedImages,
+                    stats.referencedNotes,
+                    stats.unreferencedImages,
+                    sizeMB,
+                  ),
+                );
+              });
             },
           },
         ],
