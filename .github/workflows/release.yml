@@ -39,7 +39,7 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            main.js
+            dist/main.js
             ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
 
       - name: Create release
@@ -51,4 +51,4 @@ jobs:
           gh release create "$tag" \
             --title="$tag" \
             --draft \
-            main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+            dist/main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
