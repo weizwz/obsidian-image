@@ -87,6 +87,11 @@ export interface TranslationSchema {
       recoveryName: string;
       recoveryDesc: (hasPending: boolean) => string;
       recoveryBtn: string;
+      currentNoteStatsSummary: (
+        hasActiveNote: boolean,
+        referencedImages: number,
+        sizeMB: string,
+      ) => string;
       statsSummary: (
         referencedImages: number,
         referencedNotes: number,

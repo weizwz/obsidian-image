@@ -61,6 +61,8 @@ export interface ResolvedTarget {
 }
 
 export interface VaultImageStats {
+  currentNoteReferencedImages: number;
+  currentNoteReferencedBytes: number;
   referencedImages: number;
   referencedNotes: number;
   unreferencedImages: number;

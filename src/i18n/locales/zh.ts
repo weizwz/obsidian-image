@@ -111,8 +111,12 @@ const zh: TranslationSchema = {
           ? '检测到上次批量操作存在未完成的图片事务，点击右侧按钮立即回滚修复。'
           : '如遇意外断电或强制关闭导致批量操作中断，可使用此功能校验并修复残留图片与链接。',
       recoveryBtn: '校验并修复',
+      currentNoteStatsSummary: (hasActiveNote, referencedImages, sizeMB) =>
+        hasActiveNote
+          ? `当前笔记引用图片: ${referencedImages} 张 · 引用图片总占用: ${sizeMB} MB`
+          : '当前笔记引用图片: 未打开笔记',
       statsSummary: (referencedImages, referencedNotes, unreferencedImages, sizeMB) =>
-        `笔记引用图片: ${referencedImages} 张（关联 ${referencedNotes} 篇笔记） · 未引用跳过图片: ${unreferencedImages} 张 · 引用图片总占用: ${sizeMB} MB`,
+        `全库笔记引用图片: ${referencedImages} 张（关联 ${referencedNotes} 篇笔记） · 未引用跳过图片: ${unreferencedImages} 张 · 引用图片总占用: ${sizeMB} MB`,
     },
     remote: {
       heading: '远程图片',

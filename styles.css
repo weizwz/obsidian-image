@@ -6,6 +6,9 @@
   padding-top: 0;
   font-size: var(--font-ui-smaller);
   color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .image-batch-modal .image-batch-info-list {

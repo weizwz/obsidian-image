@@ -112,8 +112,12 @@ const en: TranslationSchema = {
           ? 'An interrupted batch image transaction was detected. Click to repair and restore.'
           : 'Verify and repair any incomplete image transactions caused by unexpected shutdowns.',
       recoveryBtn: 'Verify and repair',
+      currentNoteStatsSummary: (hasActiveNote, referencedImages, sizeMB) =>
+        hasActiveNote
+          ? `Current note referenced images: ${referencedImages} · Total size: ${sizeMB} MB`
+          : 'Current note referenced images: No active note',
       statsSummary: (referencedImages, referencedNotes, unreferencedImages, sizeMB) =>
-        `Referenced images: ${referencedImages} (in ${referencedNotes} notes) · Unreferenced (skipped): ${unreferencedImages} · Total size: ${sizeMB} MB`,
+        `Vault referenced images: ${referencedImages} (in ${referencedNotes} notes) · Unreferenced (skipped): ${unreferencedImages} · Total size: ${sizeMB} MB`,
     },
     remote: {
       heading: 'Remote images',

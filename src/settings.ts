@@ -442,16 +442,26 @@ export class ImageSettingTab extends PluginSettingTab {
             searchable: false,
             render: (setting) => {
               setting.settingEl.addClass('image-batch-stats-row');
-              void scanVaultImageStats(this.app).then((stats) => {
+              const currentNote = this.getActiveMarkdownFile();
+              void scanVaultImageStats(this.app, currentNote).then((stats) => {
+                const currentSizeMB = (stats.currentNoteReferencedBytes / (1024 * 1024)).toFixed(2);
                 const sizeMB = (stats.totalReferencedBytes / (1024 * 1024)).toFixed(2);
-                setting.setDesc(
-                  i18n.batch.statsSummary(
+                setting.descEl.empty();
+                setting.descEl.createDiv({
+                  text: i18n.batch.currentNoteStatsSummary(
+                    currentNote !== null,
+                    stats.currentNoteReferencedImages,
+                    currentSizeMB,
+                  ),
+                });
+                setting.descEl.createDiv({
+                  text: i18n.batch.statsSummary(
                     stats.referencedImages,
                     stats.referencedNotes,
                     stats.unreferencedImages,
                     sizeMB,
                   ),
-                );
+                });
               });
             },
           },

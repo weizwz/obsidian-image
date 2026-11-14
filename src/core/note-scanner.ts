@@ -107,7 +107,10 @@ export async function collectReferencedImagesFromNotes(
   return Array.from(imageMap.values());
 }
 
-export async function scanVaultImageStats(app: App): Promise<VaultImageStats> {
+export async function scanVaultImageStats(
+  app: App,
+  activeNote?: TFile | null,
+): Promise<VaultImageStats> {
   const allFiles = app.vault.getFiles();
   const allImageFiles = allFiles.filter(isImageFile);
   const markdownNotes = app.vault.getMarkdownFiles();
@@ -116,6 +119,8 @@ export async function scanVaultImageStats(app: App): Promise<VaultImageStats> {
   const referencedPaths = new Set<string>();
   const notePaths = new Set<string>();
   let totalReferencedBytes = 0;
+  let currentNoteReferencedImages = 0;
+  let currentNoteReferencedBytes = 0;
 
   for (const entry of entries) {
     referencedPaths.add(entry.imageFile.path);
@@ -123,11 +128,17 @@ export async function scanVaultImageStats(app: App): Promise<VaultImageStats> {
     for (const note of entry.referencingNotes) {
       notePaths.add(note.path);
     }
+    if (activeNote && entry.referencingNotes.some((n) => n.path === activeNote.path)) {
+      currentNoteReferencedImages += 1;
+      currentNoteReferencedBytes += entry.imageFile.stat.size;
+    }
   }
 
   const unreferencedImages = allImageFiles.filter((img) => !referencedPaths.has(img.path)).length;
 
   return {
+    currentNoteReferencedImages,
+    currentNoteReferencedBytes,
     referencedImages: entries.length,
     referencedNotes: notePaths.size,
     unreferencedImages,
