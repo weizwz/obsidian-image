@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-image-manager",
+	"name": "obsidian-image-processor",
 	"version": "1.0.0",
 	"description": "Automatically rename, move, convert, and compress pasted, dropped, and existing images in Obsidian with batch processing and transaction recovery.",
 	"main": "main.js",

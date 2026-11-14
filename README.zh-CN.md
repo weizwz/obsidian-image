@@ -1,4 +1,4 @@
-# Obsidian Image Manager
+# Obsidian Image Processor
 
 [English](./README.md) | [简体中文](./README.zh-CN.md)
 
@@ -41,9 +41,9 @@
 1. 构建本项目或从 Release 下载最新产物（`main.js`、`manifest.json`、`styles.css`）。
 2. 将文件复制到你的 Obsidian 库插件目录：
    ```text
-   <Vault>/.obsidian/plugins/image-manager/
+   <Vault>/.obsidian/plugins/image-processor/
    ```
-3. 重新加载 Obsidian，并在 **设置 → 第三方插件** 中启用 **Image Manager**。
+3. 重新加载 Obsidian，并在 **设置 → 第三方插件** 中启用 **Image Processor**。
 
 ## 本地开发
 
