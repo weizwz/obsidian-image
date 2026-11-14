@@ -1,9 +1,9 @@
 {
-	"id": "image-manager",
-	"name": "Image Manager",
-	"version": "1.0.0",
-	"minAppVersion": "1.13.0",
-	"description": "Automatically compress, convert, rename, and organize pasted, dropped, remote, and existing images.",
-	"author": "weiz",
-	"isDesktopOnly": true
+  "id": "image-manager",
+  "name": "Image Manager",
+  "version": "1.0.0",
+  "minAppVersion": "1.13.0",
+  "description": "Automatically rename, move, convert, and compress pasted, dropped, and existing note images with batch processing and crash recovery. 对笔记中粘贴或拖拽进来的图片，自动进行重命名、移动位置、格式转换与压缩，还支持全库笔记图片匹配处理",
+  "author": "weiz",
+  "isDesktopOnly": true
 }
