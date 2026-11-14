@@ -1,4 +1,4 @@
-# Obsidian Image Manager
+# Obsidian Image Processor
 
 [English](./README.md) | [简体中文](./README.zh-CN.md)
 
@@ -41,9 +41,9 @@ A lightweight, high-performance desktop image management plugin for [Obsidian](h
 1. Build the plugin or download the latest release assets (`main.js`, `manifest.json`, `styles.css`).
 2. Copy the files into your vault's plugin directory:
    ```text
-   <Vault>/.obsidian/plugins/image-manager/
+   <Vault>/.obsidian/plugins/image-processor/
    ```
-3. Reload Obsidian and enable **Image Manager** in **Settings → Community plugins**.
+3. Reload Obsidian and enable **Image Processor** in **Settings → Community plugins**.
 
 ## Development
 
