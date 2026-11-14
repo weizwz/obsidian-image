@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: ImagePluginSettings = {
   compression: {
     enabled: false,
     targetFormat: 'original',
-    quality: 100,
+    quality: 80,
     maxWidth: 0,
     maxHeight: 0,
     skipLargerOutput: true,
