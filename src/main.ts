@@ -1,20 +1,40 @@
-import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
+import { Editor, Notice, Plugin } from 'obsidian';
 import { processImageUnderCursor, recoverPendingBatchTransaction } from './core/note-scanner';
 import { registerPasteAndDropHandlers } from './handlers/paste-drop-handler';
 import { setLanguageSetting, t } from './i18n';
-import { DEFAULT_SETTINGS, ImagePluginSettings, ImageSettingTab, mergeSettings } from './settings';
+import {
+  DEFAULT_SETTINGS,
+  ImagePluginSettings,
+  ImageSettingTab,
+  mergeSettings,
+  resolveActiveMarkdownFile,
+} from './settings';
 import { runInteractiveBatchProcess } from './ui/batch-modals';
 
 export default class ImagePlugin extends Plugin {
   settings!: ImagePluginSettings;
+  settingTab!: ImageSettingTab;
 
   async onload() {
     await this.loadSettings();
-    this.addSettingTab(new ImageSettingTab(this.app, this));
+    this.settingTab = new ImageSettingTab(this.app, this);
+    this.addSettingTab(this.settingTab);
     registerPasteAndDropHandlers(this);
     this.registerLocalizedCommands();
 
+    this.registerEvent(
+      this.app.workspace.on('file-open', () => {
+        this.settingTab.update();
+      }),
+    );
+    this.registerEvent(
+      this.app.workspace.on('active-leaf-change', () => {
+        this.settingTab.update();
+      }),
+    );
+
     this.app.workspace.onLayoutReady(() => {
+      this.settingTab.update();
       if (this.settings.existingImages.pendingTransaction) {
         void recoverPendingBatchTransaction(this.app, this.settings, () =>
           this.saveSettings(),
@@ -22,6 +42,7 @@ export default class ImagePlugin extends Plugin {
           if (repairedPath) {
             new Notice(t(this.settings.language).notices.recoveryRepaired(repairedPath));
           }
+          this.settingTab.update();
         });
       }
     });
@@ -36,15 +57,15 @@ export default class ImagePlugin extends Plugin {
       id: 'process-all-images-in-current-note',
       name: cmdText.processAllInNote,
       checkCallback: (checking: boolean) => {
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view || !view.file) {
+        const file = resolveActiveMarkdownFile(this.app);
+        if (!file) {
           return false;
         }
         if (!checking) {
           void runInteractiveBatchProcess(
             this.app,
             'current-note',
-            [view.file],
+            [file],
             this.settings,
             () => this.saveSettings(),
           );

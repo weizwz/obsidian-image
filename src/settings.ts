@@ -1,4 +1,12 @@
-import { App, Notice, PluginSettingTab, type SettingDefinitionItem, TFile } from 'obsidian';
+import {
+  App,
+  MarkdownView,
+  Notice,
+  PluginSettingTab,
+  type SettingDefinitionItem,
+  TFile,
+  type WorkspaceLeaf,
+} from 'obsidian';
 import { recoverPendingBatchTransaction, scanVaultImageStats } from './core/note-scanner';
 import { setLanguageSetting, t } from './i18n';
 import type ImagePlugin from './main';
@@ -69,6 +77,59 @@ export function mergeSettings(
   };
 }
 
+function getMarkdownFileFromLeaf(app: App, leaf: WorkspaceLeaf | null | undefined): TFile | null {
+  if (!leaf) {
+    return null;
+  }
+  if (
+    leaf.view instanceof MarkdownView &&
+    leaf.view.file instanceof TFile &&
+    leaf.view.file.extension.toLowerCase() === 'md'
+  ) {
+    return leaf.view.file;
+  }
+  const viewState = leaf.getViewState?.();
+  if (viewState?.type === 'markdown' && typeof viewState.state?.file === 'string') {
+    const file = app.vault.getFileByPath(viewState.state.file);
+    if (file instanceof TFile && file.extension.toLowerCase() === 'md') {
+      return file;
+    }
+  }
+  return null;
+}
+
+export function resolveActiveMarkdownFile(app: App): TFile | null {
+  const activeFile = app.workspace.getActiveFile();
+  if (activeFile instanceof TFile && activeFile.extension.toLowerCase() === 'md') {
+    return activeFile;
+  }
+
+  const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+  if (activeView?.file instanceof TFile && activeView.file.extension.toLowerCase() === 'md') {
+    return activeView.file;
+  }
+
+  const recentFile = getMarkdownFileFromLeaf(app, app.workspace.getMostRecentLeaf());
+  if (recentFile) {
+    return recentFile;
+  }
+
+  for (const leaf of app.workspace.getLeavesOfType('markdown')) {
+    const file = getMarkdownFileFromLeaf(app, leaf);
+    if (file) {
+      return file;
+    }
+  }
+
+  let rootLeafFile: TFile | null = null;
+  app.workspace.iterateRootLeaves((leaf) => {
+    if (!rootLeafFile) {
+      rootLeafFile = getMarkdownFileFromLeaf(app, leaf);
+    }
+  });
+  return rootLeafFile;
+}
+
 export class ImageSettingTab extends PluginSettingTab {
   plugin: ImagePlugin;
 
@@ -78,11 +139,7 @@ export class ImageSettingTab extends PluginSettingTab {
   }
 
   private getActiveMarkdownFile(): TFile | null {
-    const file = this.app.workspace.getActiveFile();
-    if (file instanceof TFile && file.extension.toLowerCase() === 'md') {
-      return file;
-    }
-    return null;
+    return resolveActiveMarkdownFile(this.app);
   }
 
   getControlValue(key: string): unknown {
@@ -310,10 +367,12 @@ export class ImageSettingTab extends PluginSettingTab {
             name: i18n.batch.currentNoteName,
             desc: i18n.batch.currentNoteDesc(activeNote?.name ?? null),
             render: (setting) => {
+              const currentNote = this.getActiveMarkdownFile();
+              setting.setDesc(i18n.batch.currentNoteDesc(currentNote?.name ?? null));
               setting.addButton((btn) => {
                 btn
                   .setButtonText(i18n.batch.currentNoteBtn)
-                  .setDisabled(!activeNote)
+                  .setDisabled(!currentNote)
                   .onClick(() => {
                     const currentActive = this.getActiveMarkdownFile();
                     if (!currentActive) {
@@ -355,8 +414,10 @@ export class ImageSettingTab extends PluginSettingTab {
             name: i18n.batch.recoveryName,
             desc: i18n.batch.recoveryDesc(hasPending),
             render: (setting) => {
+              const isPending = Boolean(this.plugin.settings.existingImages.pendingTransaction);
+              setting.setDesc(i18n.batch.recoveryDesc(isPending));
               setting.addButton((btn) => {
-                if (hasPending) {
+                if (isPending) {
                   btn.setCta();
                 }
                 btn.setButtonText(i18n.batch.recoveryBtn).onClick(() => {
